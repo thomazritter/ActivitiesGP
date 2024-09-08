@@ -1,0 +1,15 @@
+1. O que é a GLSL? Quais os dois tipos de shaders são obrigatórios no pipeline programável da versão atual que trabalhamos em aula e o que eles processam?  
+GLSL é uma linguagem de shading baseada em C, que os shaders sao feitos. Os dois tipos de shaders obrigatórios no pipeline sao Vertex Shader e Fragment Shader.
+
+2. O que são primitivas gráficas? Como fazemos o armazenamento dos vértices na OpenGL?
+Através das primitivas básicas conseguimos montar a descricao da forma dos objetos que compoem a cena. Exemplos de primitivas básicas:
+- vértices
+- arestas
+- faces/polígonos
+
+3. Explique o que é VBO, VAO e EBO, e como se relacionam (se achar mais fácil, pode fazer um gráfico representando a relação entre eles).  
+VBO significa Vertex Buffer Objects, ou seja, um array de dados float que serve como bugger para enviar dados dos vértices a GPU. Isso permite que os objetos sejam renderizados pela placa gráfica com mais velocidade.
+VAO realiza a ligacao dos atributos de um vértice. Será definido com o VAO o VBO que será usado, a localizacao destes VBOs e o formato destes dados.
+EBO significa Element Buffer Objects, ou seja, um buffer que permite a reutilizacao de vértices para criar múltiplos primitivos.
+
+
