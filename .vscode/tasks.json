@@ -7,13 +7,14 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "-I${workspaceFolder}/./Dependencies/GLAD/include", 
-                "-I${workspaceFolder}/./Dependencies/glfw-3.4.bin.WIN64/include",
+                "-I${workspaceFolder}/Dependencies/GLAD/include",
+                "-I${workspaceFolder}/Dependencies/glfw-3.4.bin.WIN64/include",
+                "-I${workspaceFolder}/Dependencies/glm",
                 "${file}",
-                "${workspaceFolder}/glad.c",
+                "${workspaceFolder}/Dependencies/GLAD/src/glad.c",
                 "-o",
                 "${fileDirname}\\${fileBasenameNoExtension}.exe",
-                "-L${workspaceFolder}/./Dependencies/glfw-3.4.bin.WIN64/lib-mingw-w64",
+                "-L${workspaceFolder}/Dependencies/glfw-3.4.bin.WIN64/lib-mingw-w64",
                 "-lglfw3dll"
             ],
             "options": {
