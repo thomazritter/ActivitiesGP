@@ -10,43 +10,38 @@ using namespace std;
 // GLFW
 #include <GLFW/glfw3.h>
 
+//Classe shader
+#include "shader/Shader.h"
+
 
 // Protótipo da função de callback de teclado
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 // Protótipos das funções
-int setupShader();
 int setupGeometry();
 
 // Dimensões da janela (pode ser alterado em tempo de execução)
-const GLuint WIDTH = 800, HEIGHT = 600;
+const GLuint WIDTH = 800, HEIGHT = 800;
 
-// Código fonte do Vertex Shader (em GLSL): ainda hardcoded
-const GLchar* vertexShaderSource = "#version 400\n"
-"layout (location = 0) in vec3 position;\n"
-"layout (location = 1) in vec3 color;\n"
-"out vec3 vertexColor;\n"
-"void main()\n"
-"{\n"
-//...pode ter mais linhas de código aqui!
-"gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
-"vertexColor = color;\n"
-"}\0";
-
-//Códifo fonte do Fragment Shader (em GLSL): ainda hardcoded
-const GLchar* fragmentShaderSource = "#version 400\n"
-"in vec3 vertexColor;\n"
-"out vec4 color;\n"
-"void main()\n"
-"{\n"
-"color = vec4(vertexColor,1.0);\n"
-"}\n\0";
 
 // Função MAIN
 int main()
 {
 	// Inicialização da GLFW
 	glfwInit();
+
+	//Muita atenção aqui: alguns ambientes não aceitam essas configurações
+	//Você deve adaptar para a versão do OpenGL suportada por sua placa
+	//Sugestão: comente essas linhas de código para desobrir a versão e
+	//depois atualize (por exemplo: 4.5 com 4 e 5)
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	//Essencial para computadores da Apple
+#ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 
 	// Criação da janela GLFW
 	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Ola Triangulo! -- Thomaz", nullptr, nullptr);
@@ -59,6 +54,7 @@ int main()
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
+
 	}
 
 	// Obtendo as informações de versão
@@ -74,13 +70,14 @@ int main()
 
 
 	// Compilando e buildando o programa de shader
-	GLuint shaderID = setupShader();
+	Shader shader("shader/shader.vs", "shader/shader.fs");
 
 	// Gerando um buffer simples, com a geometria de um triângulo
 	GLuint VAO = setupGeometry();
 	
-	glUseProgram(shaderID);
 	
+	glUseProgram(shader.ID);
+
 	// Loop da aplicação - "game loop"
 	while (!glfwWindowShouldClose(window))
 	{
@@ -88,7 +85,7 @@ int main()
 		glfwPollEvents();
 
 		// Limpa o buffer de cor
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
+		glClearColor(0.7f, 0.7f, 0.5f, 1.0f); //cor de fundo
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glLineWidth(10);
@@ -98,14 +95,17 @@ int main()
 
 		// Chamada de desenho - drawcall
 		// Poligono Preenchido - GL_TRIANGLES
-		// Poligono contorno - GL_LINE_LOOP
-		// Poligono vértices - GL_POINTS
+
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		glDrawArrays(GL_LINE_LOOP, 0, 3);
-		glDrawArrays(GL_LINE_LOOP, 3, 3);
+		// Chamada de desenho - drawcall
+		// CONTORNO - GL_LINE_LOOP
+		// PONTOS - GL_POINTS
 
-		glDrawArrays(GL_POINTS, 0, 6);
+		//glDrawArrays(GL_LINE_LOOP, 0, 6);
+
+		//glDrawArrays(GL_POINTS, 0, 6);
+		
 
 		glBindVertexArray(0); //Desconectando o buffer de geometria
 
@@ -128,54 +128,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
-//Esta função está basntante hardcoded - objetivo é compilar e "buildar" um programa de
-// shader simples e único neste exemplo de código
-// O código fonte do vertex e fragment shader está nos arrays vertexShaderSource e
-// fragmentShader source no iniçio deste arquivo
-// A função retorna o identificador do programa de shader
-int setupShader()
-{
-	// Vertex shader
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-	// Checando erros de compilação (exibição via log no terminal)
-	GLint success;
-	GLchar infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-	// Fragment shader
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-	// Checando erros de compilação (exibição via log no terminal)
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-	// Linkando os shaders e criando o identificador do programa de shader
-	GLuint shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-	// Checando por erros de linkagem
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-	}
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-
-	return shaderProgram;
-}
-
 // Esta função está bastante harcoded - objetivo é criar os buffers que armazenam a 
 // geometria de um triângulo
 // Apenas atributo coordenada nos vértices
@@ -188,19 +140,17 @@ int setupGeometry()
 	// Cada atributo do vértice (coordenada, cores, coordenadas de textura, normal, etc)
 	// Pode ser arazenado em um VBO único ou em VBOs separados
 	GLfloat vertices[] = {
-		//x   y     z	r	 g	   b
-		//T0
-		-0.5,  0.5, 0.0, 1.0, 0.0, 0.0, //v0
-		-0.5, -0.5, 0.0, 0.0, 1.0, 0.0, //v1
-		 0.0,  0.0, 0.0, 0.0, 0.0, 1.0,  //v2
-		//T1
-		 0.0,  0.0, 0.0, 1.0, 1.0, 0.0, //v3
-		 0.5, -0.5, 0.0, 0.0, 1.0, 1.0, //v4
-		 0.5,  0.5, 0.0, 1.0, 0.0, 1.0  //v5
-			  
+        -0.5, 0.0, 0.0, 1.0, 0.0, 0.0,
+        0.0, 0.5, 0.0, 0.0, 1.0, 0.0,
+        0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+        
+        0.5, 0.0, 0.0, 1.0, 0.0, 0.0,
+        0.0, -0.5, 0.0, 0.0, 1.0, 0.0,
+        0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
 	};
 
 	GLuint VBO, VAO;
+
 	//Geração do identificador do VBO
 	glGenBuffers(1, &VBO);
 	//Faz a conexão (vincula) do buffer como um buffer de array
@@ -221,12 +171,12 @@ int setupGeometry()
 	// Tamanho em bytes 
 	// Deslocamento a partir do byte zero 
 
-	//Atributo posicao
+	//Atributo posição
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 
 	//Atributo cor
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*) (3 * sizeof(GLfloat)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
 
 	// Observe que isso é permitido, a chamada para glVertexAttribPointer registrou o VBO como o objeto de buffer de vértice 

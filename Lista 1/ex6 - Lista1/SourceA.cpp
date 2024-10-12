@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 #include <assert.h>
+#include <math.h>
 
 using namespace std;
 
@@ -117,8 +118,8 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); //cor de fundo
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glLineWidth(10);
-		glPointSize(20);
+		glLineWidth(5);
+		glPointSize(10);
 
 		glBindVertexArray(VAO); //Conectando ao buffer de geometria
 
@@ -128,14 +129,9 @@ int main()
 		// Poligono Preenchido - GL_TRIANGLES
 		// Poligono contorno - GL_LINE_LOOP
 		// Poligono vértices - GL_POINTS
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		glUniform4f(colorLoc, 1.0f, 1.0f, 0.0f, 1.0f);
-		glDrawArrays(GL_LINE_LOOP, 0, 3); // se removermos essa linha e a linha abaixo, conseguimos remover o contorno dos dois triangulos
-		glDrawArrays(GL_LINE_LOOP, 3, 3);
-
-		glUniform4f(colorLoc, 0.0f, 1.0f, 1.0f, 1.0f);
-		glDrawArrays(GL_POINTS, 0, 6); // se removermos essa linha, os vertices sao removidos
+		glBindVertexArray(VAO);
+		
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 100 + 2);  // Use GL_TRIANGLE_FAN for filled shape
 
 		glBindVertexArray(0); //Desconectando o buffer de geometria
 
@@ -213,52 +209,46 @@ int setupShader()
 // A função retorna o identificador do VAO
 int setupGeometry()
 {
-	// Aqui setamos as coordenadas x, y e z do triângulo e as armazenamos de forma
-	// sequencial, já visando mandar para o VBO (Vertex Buffer Objects)
-	// Cada atributo do vértice (coordenada, cores, coordenadas de textura, normal, etc)
-	// Pode ser arazenado em um VBO único ou em VBOs separados
-	GLfloat vertices[] = {
-		//x   y     z
-		//T0
-		-0.5,  0.5, 0.0, //v0
-		-0.5, -0.5, 0.0, //v1
-		 0.0,  0.0, 0.0, //v2
-		//T1
-		 0.0,  0.0, 0.0, //v3
-		 0.5, -0.5, 0.0, //v4
-		 0.5,  0.5, 0.0  //v5
-			  
-	};
+    const int numSegments = 50;  // Number of triangles to form the arc of the pizza slice
+    const float radius = 0.5f;   // Radius of the pizza
+    const float sliceAngle = 3.14159265358979323846 / 3.0f;  // Slice is 60 degrees (Pi/3 radians)
 
-	GLuint VBO, VAO;
-	//Geração do identificador do VBO
-	glGenBuffers(1, &VBO);
-	//Faz a conexão (vincula) do buffer como um buffer de array
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	//Envia os dados do array de floats para o buffer da OpenGl
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    GLfloat vertices[(numSegments + 2) * 3];  // +2 for the center and end points
+    int vertexCount = 0;
 
-	//Geração do identificador do VAO (Vertex Array Object)
-	glGenVertexArrays(1, &VAO);
-	// Vincula (bind) o VAO primeiro, e em seguida  conecta e seta o(s) buffer(s) de vértices
-	// e os ponteiros para os atributos 
-	glBindVertexArray(VAO);
-	//Para cada atributo do vertice, criamos um "AttribPointer" (ponteiro para o atributo), indicando: 
-	// Localização no shader * (a localização dos atributos devem ser correspondentes no layout especificado no vertex shader)
-	// Numero de valores que o atributo tem (por ex, 3 coordenadas xyz) 
-	// Tipo do dado
-	// Se está normalizado (entre zero e um)
-	// Tamanho em bytes 
-	// Deslocamento a partir do byte zero 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
+    // Add the center point of the pizza slice (the pointy end)
+    vertices[vertexCount++] = 0.0f;  // x
+    vertices[vertexCount++] = 0.0f;  // y
+    vertices[vertexCount++] = 0.0f;  // z
 
-	// Observe que isso é permitido, a chamada para glVertexAttribPointer registrou o VBO como o objeto de buffer de vértice 
-	// atualmente vinculado - para que depois possamos desvincular com segurança
-	glBindBuffer(GL_ARRAY_BUFFER, 0); 
+    // Generate points along the arc of the pizza slice
+    float startAngle = -sliceAngle / 2.0f;
+    float endAngle = sliceAngle / 2.0f;
 
-	// Desvincula o VAO (é uma boa prática desvincular qualquer buffer ou array para evitar bugs medonhos)
-	glBindVertexArray(0); 
+    for (int i = 0; i <= numSegments; i++)
+    {
+        float theta = startAngle + i * (endAngle - startAngle) / numSegments;
+        float x = radius * cos(theta);
+        float y = radius * sin(theta);
 
-	return VAO;
+        vertices[vertexCount++] = x;
+        vertices[vertexCount++] = y;
+        vertices[vertexCount++] = 0.0f;  // z
+    }
+
+    // Now we have the vertex data, let's create the VBO and VAO
+    GLuint VBO, VAO;
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    return VAO;
 }

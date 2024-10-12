@@ -4,9 +4,6 @@
 
 using namespace std;
 
-// GLM
-#include <glm/glm.hpp>
-
 // GLAD
 #include <glad/glad.h>
 
@@ -41,8 +38,13 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+	//Essencial para computadores da Apple
+#ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
 	// Criação da janela GLFW
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Espiral - Thomaz", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Ola Triangulo! -- Thomaz", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	// Fazendo o registro da função de callback para a janela GLFW
@@ -83,10 +85,10 @@ int main()
 		glfwPollEvents();
 
 		// Limpa o buffer de cor
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f); //cor de fundo
+		glClearColor(0.7f, 0.7f, 0.5f, 1.0f); //cor de fundo
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glLineWidth(40);
+		glLineWidth(10);
 		glPointSize(20);
 
 		glBindVertexArray(VAO); //Conectando ao buffer de geometria
@@ -94,17 +96,15 @@ int main()
 		// Chamada de desenho - drawcall
 		// Poligono Preenchido - GL_TRIANGLES
 
-        glDrawArrays(GL_LINE_STRIP, 0, 500);
-
-		//glDrawArrays(GL_TRIANGLES, 0, 30);
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		// Chamada de desenho - drawcall
 		// CONTORNO - GL_LINE_LOOP
 		// PONTOS - GL_POINTS
 
-		//glDrawArrays(GL_LINE_LOOP, 0, 30);
+		glDrawArrays(GL_LINE_LOOP, 0, 3);
 
-		//glDrawArrays(GL_POINTS, 0, 30);
+		glDrawArrays(GL_POINTS, 0, 3);
 		
 
 		glBindVertexArray(0); //Desconectando o buffer de geometria
@@ -139,31 +139,11 @@ int setupGeometry()
 	// sequencial, já visando mandar para o VBO (Vertex Buffer Objects)
 	// Cada atributo do vértice (coordenada, cores, coordenadas de textura, normal, etc)
 	// Pode ser arazenado em um VBO único ou em VBOs separados
-    float pi = 2*acos(0.0f);
-    float centerX = 0.0f;
-    float centerY = 0.0f;
-    float r = 0.002f;
-    float inc = r;
-    int lines = 500;
-    
-    GLfloat vertices[lines*6];
-    
-    for(int i = 0; i <= lines ; i++) {
-        int j = i*6;
-        
-        GLfloat x = centerX + (r*cosf(i*pi*10.0f/lines));
-        GLfloat y = centerY + (r*sinf(i*pi*10.0f/lines));
-        
-        vertices[j] = x;
-        vertices[j+1] = y;
-        vertices[j+2] = 0.0f;
-
-        vertices[j+3] = 0.0f;
-        vertices[j+4] = 0.0f;
-        vertices[j+5] = 0.0f;
-        
-        r += 0.002f;
-    }
+	GLfloat vertices[] = {
+            0.0,    0.6,    0.0,    1.0,    0.0,    0.0,
+            -0.6,   -0.5,   0.0,    0.0,    1.0,    0.0,
+            0.6,    -0.3,   0.0,    0.0,    0.0,    1.0 
+	};
 
 	GLuint VBO, VAO;
 

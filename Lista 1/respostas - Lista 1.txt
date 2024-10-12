@@ -8,7 +8,7 @@ Através das primitivas básicas conseguimos montar a descricao da forma dos obj
 - faces/polígonos
 
 3. Explique o que é VBO, VAO e EBO, e como se relacionam (se achar mais fácil, pode fazer um gráfico representando a relação entre eles).  
-VBO significa Vertex Buffer Objects, ou seja, um array de dados float que serve como bugger para enviar dados dos vértices a GPU. Isso permite que os objetos sejam renderizados pela placa gráfica com mais velocidade.
+VBO significa Vertex Buffer Objects, ou seja, um array de dados float que serve como buffer para enviar dados dos vértices a GPU. Isso permite que os objetos sejam renderizados pela placa gráfica com mais velocidade.
 VAO realiza a ligacao dos atributos de um vértice. Será definido com o VAO o VBO que será usado, a localizacao destes VBOs e o formato destes dados.
 EBO significa Element Buffer Objects, ou seja, um buffer que permite a reutilizacao de vértices para criar múltiplos primitivos.
 

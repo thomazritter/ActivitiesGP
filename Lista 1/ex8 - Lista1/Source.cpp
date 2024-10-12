@@ -44,7 +44,7 @@ int main()
 #endif
 
 	// Criação da janela GLFW
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Triangulo - Thomaz", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Ola Triangulo! -- Thomaz", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	// Fazendo o registro da função de callback para a janela GLFW
@@ -85,7 +85,7 @@ int main()
 		glfwPollEvents();
 
 		// Limpa o buffer de cor
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
+		glClearColor(0.7f, 0.7f, 0.5f, 1.0f); //cor de fundo
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glLineWidth(10);
