@@ -1,3 +1,12 @@
+/* Hello Triangle - c�digo adaptado de https://learnopengl.com/#!Getting-started/Hello-Triangle 
+ *
+ * Adaptado por Rossana Baptista Queiroz
+ * para a disciplina de Processamento Gr�fico - Unisinos
+ * Vers�o inicial: 7/4/2017
+ * �ltima atualiza��o em 27/02/2023
+ *
+ */
+
 #include <iostream>
 #include <string>
 #include <assert.h>
@@ -18,68 +27,94 @@ using namespace std;
 //Classe shader
 #include "shader/Shader.h"
 
+
+// Prot�tipo da fun��o de callback de teclado
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
+// Prot�tipos das fun��es
 int setupGeometry();
 
+// Dimens�es da janela (pode ser alterado em tempo de execu��o)
 const GLuint WIDTH = 800, HEIGHT = 600;
 
 
+// Fun��o MAIN
 int main()
 {
-
+	// Inicializa��o da GLFW
 	glfwInit();
 
+	//Muita aten��o aqui: alguns ambientes n�o aceitam essas configura��es
+	//Voc� deve adaptar para a vers�o do OpenGL suportada por sua placa
+	//Sugest�o: comente essas linhas de c�digo para desobrir a vers�o e
+	//depois atualize (por exemplo: 4.5 com 4 e 5)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+	//Essencial para computadores da Apple
+#ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
+	// Cria��o da janela GLFW
 	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Lista 2 - Thomaz Ritter", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
-	
+	// Fazendo o registro da fun��o de callback para a janela GLFW
 	glfwSetKeyCallback(window, key_callback);
 
+	// GLAD: carrega todos os ponteiros d fun��es da OpenGL
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
 
 	}
 
-	const GLubyte* renderer = glGetString(GL_RENDERER); 
-	const GLubyte* version = glGetString(GL_VERSION); 
+	// Obtendo as informa��es de vers�o
+	const GLubyte* renderer = glGetString(GL_RENDERER); /* get renderer string */
+	const GLubyte* version = glGetString(GL_VERSION); /* version as a string */
 	cout << "Renderer: " << renderer << endl;
 	cout << "OpenGL version supported " << version << endl;
 
+	// Definindo as dimens�es da viewport com as mesmas dimens�es da janela da aplica��o
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
 	glViewport(0, 0, width, height);
 
+
+	// Compilando e buildando o programa de shader
 	Shader shader("shader/shader.vs", "shader/shader.fs");
 
+	// Gerando um buffer simples, com a geometria de um tri�ngulo
 	GLuint VAO = setupGeometry();
 	
 	glUseProgram(shader.ID);
 
-	// abaixo temos a mudanca como é requerido no exercicio
+	//Matriz de proje��o paralela ortogr�fica
+
 	glm::mat4 projection = glm::ortho(-10.0, 10.0, -10.0, 10.0, -1.0, 1.0);
 
 	GLint projLoc = glGetUniformLocation(shader.ID, "projection");
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
+	// Loop da aplica��o - "game loop"
 	while (!glfwWindowShouldClose(window))
 	{
-		
+		// Checa se houveram eventos de input (key pressed, mouse moved etc.) e chama as fun��es de callback correspondentes
 		glfwPollEvents();
 
-		
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
+		// Limpa o buffer de cor
+		glClearColor(0.7f, 0.7f, 0.5f, 1.0f); //cor de fundo
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glLineWidth(1);
 		glPointSize(5);
 
-		glBindVertexArray(VAO);
+		glBindVertexArray(VAO); //Conectando ao buffer de geometria
+
+		// Chamada de desenho - drawcall
+		// Poligono Preenchido - GL_TRIANGLES
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -88,27 +123,37 @@ int main()
 		// PONTOS - GL_POINTS
 
 		glDrawArrays(GL_LINE_LOOP, 0, 3);
+		//glDrawArrays(GL_LINE_LOOP, 3, 3);
 
 		glDrawArrays(GL_POINTS, 0, 3);
 		
-		glBindVertexArray(0);
 
+		glBindVertexArray(0); //Desconectando o buffer de geometria
+
+		// Troca os buffers da tela
 		glfwSwapBuffers(window);
 	}
-
+	// Pede pra OpenGL desalocar os buffers
 	glDeleteVertexArrays(1, &VAO);
-	
+	// Finaliza a execu��o da GLFW, limpando os recursos alocados por ela
 	glfwTerminate();
 	return 0;
 }
 
-
+// Fun��o de callback de teclado - s� pode ter uma inst�ncia (deve ser est�tica se
+// estiver dentro de uma classe) - � chamada sempre que uma tecla for pressionada
+// ou solta via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
+// Esta fun��o est� bastante harcoded - objetivo � criar os buffers que armazenam a 
+// geometria de um tri�ngulo
+// Apenas atributo coordenada nos v�rtices
+// 1 VBO com as coordenadas, VAO com apenas 1 ponteiro para atributo
+// A fun��o retorna o identificador do VAO
 int setupGeometry()
 {
 	// Aqui setamos as coordenadas x, y e z do tri�ngulo e as armazenamos de forma
